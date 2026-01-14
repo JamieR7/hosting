@@ -15,8 +15,8 @@ const defaultState = {
     tournamentName: "",
   },
   courts: [
-    { id: "court1", name: "Court 1", nowMatchId: null, queueMatchIds: [] },
-    { id: "court2", name: "Court 2", nowMatchId: null, queueMatchIds: [] },
+    { id: "court1", name: "Court 1", nowMatchId: null, queueMatchIds: [], historyMatchIds: [] },
+    { id: "court2", name: "Court 2", nowMatchId: null, queueMatchIds: [], historyMatchIds: [] },
   ],
   matches: {},
 };
@@ -30,9 +30,17 @@ function loadState() {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return defaultState;
     const parsed = JSON.parse(raw);
+    
+    // Migrate old data: add historyMatchIds if missing
+    const courts = parsed.courts?.map(c => ({
+      ...c,
+      historyMatchIds: c.historyMatchIds ?? []
+    })) ?? defaultState.courts;
+    
     return {
       ...defaultState,
       ...parsed,
+      courts,
       header: { ...defaultState.header, ...(parsed.header ?? {}) },
     };
   } catch {
@@ -122,12 +130,16 @@ export default function App() {
 
         const finishedId = courtBefore.nowMatchId || null;
         const queue = [...courtBefore.queueMatchIds];
+        const history = [...(courtBefore.historyMatchIds ?? [])];
         const matches = { ...prev.matches };
 
+        // Add current match to history if it exists
         if (finishedId && matches[finishedId]) {
           matches[finishedId] = { ...matches[finishedId], status: "done" };
+          history.push(finishedId);
         }
 
+        // Start next from queue
         let nextId = null;
         if (queue.length > 0) {
           nextId = queue.shift();
@@ -138,7 +150,7 @@ export default function App() {
 
         const courts = prev.courts.map((c) => {
           if (c.id !== courtId) return c;
-          return { ...c, nowMatchId: nextId, queueMatchIds: queue };
+          return { ...c, nowMatchId: nextId, queueMatchIds: queue, historyMatchIds: history };
         });
 
         return { ...prev, courts, matches };
@@ -150,19 +162,30 @@ export default function App() {
         const courtBefore = prev.courts.find((c) => c.id === courtId);
         if (!courtBefore) return prev;
 
-        const currentId = courtBefore.nowMatchId;
-        if (!currentId) return prev;
+        const history = [...(courtBefore.historyMatchIds ?? [])];
+        if (history.length === 0) return prev; // Nothing to go back to
 
-        const queue = [currentId, ...courtBefore.queueMatchIds];
+        const currentId = courtBefore.nowMatchId;
+        const queue = [...courtBefore.queueMatchIds];
         const matches = { ...prev.matches };
 
-        if (matches[currentId]) {
-          matches[currentId] = { ...matches[currentId], status: "queued" };
+        // If there's a current match, push it back to front of queue
+        if (currentId) {
+          queue.unshift(currentId);
+          if (matches[currentId]) {
+            matches[currentId] = { ...matches[currentId], status: "queued" };
+          }
+        }
+
+        // Pop last match from history and make it current
+        const prevId = history.pop();
+        if (matches[prevId]) {
+          matches[prevId] = { ...matches[prevId], status: "live" };
         }
 
         const courts = prev.courts.map((c) => {
           if (c.id !== courtId) return c;
-          return { ...c, nowMatchId: null, queueMatchIds: queue };
+          return { ...c, nowMatchId: prevId, queueMatchIds: queue, historyMatchIds: history };
         });
 
         return { ...prev, courts, matches };
@@ -254,6 +277,8 @@ function Display({ state, actions }) {
           const up1F = formatMatch(up1);
           const up2F = formatMatch(up2);
 
+          const hasHistory = (court.historyMatchIds ?? []).length > 0;
+
           return (
             <div className="card" key={court.id}>
               <div className="courtTitle">
@@ -262,7 +287,7 @@ function Display({ state, actions }) {
                   <button 
                     className="courtBtn" 
                     onClick={() => actions.prevMatch(court.id)}
-                    disabled={!court.nowMatchId}
+                    disabled={!hasHistory}
                   >
                     ← Prev
                   </button>
