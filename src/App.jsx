@@ -209,7 +209,8 @@ function Header({ mode, tournamentName, actions }) {
     <div className="header">
       <div className="brand">
         <div>
-          <div className="welcome">Welcome to CDL. Home of the Panthers!</div>
+          <div className="welcomeMain">Welcome to CDL</div>
+          <div className="welcomeSub">Home of the Panthers</div>
 
           <div className="tournamentNameLine">{showName !== "" ? showName : " "}</div>
 
