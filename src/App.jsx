@@ -1,6 +1,13 @@
 import React, { useEffect, useState } from "react";
 import logo from "./assets/logo.png";
-import athleticsLogo from "./assets/athletics-logo.png";
+
+// Optional athletics logo - won't break build if missing
+let athleticsLogo = null;
+try {
+  athleticsLogo = new URL("./assets/athletics-logo.png", import.meta.url).href;
+} catch {
+  // Logo doesn't exist yet
+}
 
 const STORAGE_KEY = "cdl_schedule_v1";
 
@@ -282,9 +289,11 @@ function Display({ state, viewCourtIndex }) {
         </div>
       </div>
 
-      <div className="logoColumn">
-        <img className="athleticsLogo" src={athleticsLogo} alt="Athletics logo" />
-      </div>
+      {athleticsLogo && (
+        <div className="logoColumn">
+          <img className="athleticsLogo" src={athleticsLogo} alt="Athletics logo" />
+        </div>
+      )}
     </div>
   );
 }
