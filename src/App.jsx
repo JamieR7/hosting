@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import logo from "./assets/logo.png";
+import athleticsLogo from "./assets/athletics-logo.png";
 
 const STORAGE_KEY = "cdl_schedule_v1";
 
@@ -57,6 +58,7 @@ function useMode() {
 export default function App() {
   const mode = useMode();
   const [state, setState] = useState(() => loadState());
+  const [viewCourtIndex, setViewCourtIndex] = useState(0);
 
   const setAndSave = (updater) => {
     setState((prev) => {
@@ -108,7 +110,6 @@ export default function App() {
       });
     },
 
-    // Next match = finish current (if any) then start next queued (if any).
     nextMatch: (courtId) => {
       setAndSave((prev) => {
         const courtBefore = prev.courts.find((c) => c.id === courtId);
@@ -158,14 +159,33 @@ export default function App() {
 
   return (
     <div className="container">
-      <Header mode={mode} tournamentName={state.header?.tournamentName ?? ""} actions={actions} />
-      {mode === "display" ? <Display state={state} /> : <Admin state={state} actions={actions} />}
+      <Header
+        mode={mode}
+        tournamentName={state.header?.tournamentName ?? ""}
+        actions={actions}
+        viewCourtIndex={viewCourtIndex}
+        setViewCourtIndex={setViewCourtIndex}
+        totalCourts={state.courts.length}
+      />
+      {mode === "display" ? (
+        <Display state={state} viewCourtIndex={viewCourtIndex} />
+      ) : (
+        <Admin state={state} actions={actions} />
+      )}
     </div>
   );
 }
 
-function Header({ mode, tournamentName, actions }) {
+function Header({ mode, tournamentName, actions, viewCourtIndex, setViewCourtIndex, totalCourts }) {
   const showName = (tournamentName ?? "").trim();
+
+  const handlePrev = () => {
+    setViewCourtIndex((prev) => (prev > 0 ? prev - 1 : totalCourts - 1));
+  };
+
+  const handleNext = () => {
+    setViewCourtIndex((prev) => (prev < totalCourts - 1 ? prev + 1 : 0));
+  };
 
   return (
     <div className="header">
@@ -188,6 +208,16 @@ function Header({ mode, tournamentName, actions }) {
       </div>
 
       <div className="nav">
+        {mode === "display" && (
+          <>
+            <button className="btn" onClick={handlePrev}>
+              ← Prev
+            </button>
+            <button className="btn" onClick={handleNext}>
+              Next →
+            </button>
+          </>
+        )}
         <a className="btn" href="#/display" aria-current={mode === "display" ? "page" : undefined}>
           Display
         </a>
@@ -199,58 +229,62 @@ function Header({ mode, tournamentName, actions }) {
   );
 }
 
-function Display({ state }) {
+function Display({ state, viewCourtIndex }) {
+  const court = state.courts[viewCourtIndex];
+  if (!court) return null;
+
+  const now = court.nowMatchId ? state.matches[court.nowMatchId] : null;
+
+  const up1Id = court.queueMatchIds[0];
+  const up2Id = court.queueMatchIds[1];
+
+  const up1 = up1Id ? state.matches[up1Id] : null;
+  const up2 = up2Id ? state.matches[up2Id] : null;
+
+  const nowF = formatMatch(now);
+  const up1F = formatMatch(up1);
+  const up2F = formatMatch(up2);
+
   return (
-    <div className="grid">
-      {state.courts.map((court) => {
-        const now = court.nowMatchId ? state.matches[court.nowMatchId] : null;
+    <div className="displayWrap">
+      <div className="courtColumn">
+        <div className="card">
+          <div className="courtTitle">
+            <h2>{court.name}</h2>
+            <span className="tag">{now ? "LIVE" : "READY"}</span>
+          </div>
 
-        const up1Id = court.queueMatchIds[0];
-        const up2Id = court.queueMatchIds[1];
-
-        const up1 = up1Id ? state.matches[up1Id] : null;
-        const up2 = up2Id ? state.matches[up2Id] : null;
-
-        const nowF = formatMatch(now);
-        const up1F = formatMatch(up1);
-        const up2F = formatMatch(up2);
-
-        return (
-          <div className="card" key={court.id}>
-            <div className="courtTitle">
-              <h2>{court.name}</h2>
-              <span className="tag">{now ? "LIVE" : "READY"}</span>
-            </div>
-
-            <div>
-              <div className="sectionLabel">Now playing</div>
-              <div className="matchBig">
-                <div className="teams">{nowF ? nowF.teams : "—"}</div>
-                <div className="meta">{nowF ? nowF.meta : "No match started"}</div>
-              </div>
-            </div>
-
-            {/* Spacer before Up Next */}
-            <br />
-
-            <div className="upNextDim">
-              <div className="sectionLabel">Up next</div>
-
-              <div className="matchSmall">
-                <div className="teams">{up1F ? up1F.teams : "—"}</div>
-                <div className="meta">{up1F ? up1F.meta : "No match queued"}</div>
-              </div>
-
-              {up2F && (
-                <div className="matchSmall" style={{ marginTop: 14 }}>
-                  <div className="teams">{up2F.teams}</div>
-                  <div className="meta">{up2F.meta}</div>
-                </div>
-              )}
+          <div>
+            <div className="sectionLabel">Now playing</div>
+            <div className="matchBig">
+              <div className="teams">{nowF ? nowF.teams : "—"}</div>
+              <div className="meta">{nowF ? nowF.meta : "No match started"}</div>
             </div>
           </div>
-        );
-      })}
+
+          <br />
+
+          <div className="upNextDim">
+            <div className="sectionLabel">Up next</div>
+
+            <div className="matchSmall">
+              <div className="teams">{up1F ? up1F.teams : "—"}</div>
+              <div className="meta">{up1F ? up1F.meta : "No match queued"}</div>
+            </div>
+
+            {up2F && (
+              <div className="matchSmall" style={{ marginTop: 14 }}>
+                <div className="teams">{up2F.teams}</div>
+                <div className="meta">{up2F.meta}</div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="logoColumn">
+        <img className="athleticsLogo" src={athleticsLogo} alt="Athletics logo" />
+      </div>
     </div>
   );
 }
