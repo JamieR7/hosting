@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import logo from "./assets/logo.jpg";
+import logo from "./assets/logo.png";
 
 const STORAGE_KEY = "cdl_schedule_v1";
 
