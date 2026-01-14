@@ -1,10 +1,9 @@
 :root{
-  /* From the logo palette */
   --cdl-blue: #004088;
   --cdl-yellow: #f8b808;
   --cdl-red: #e83038;
+
   --bg: #000000;
-  --panel: #0c0f14;
   --text: #f3f6ff;
   --muted: #b9c1d6;
   --stroke: rgba(255,255,255,0.10);
@@ -14,6 +13,7 @@
 
 *{ box-sizing: border-box; }
 html, body { height: 100%; }
+
 body{
   margin: 0;
   background: var(--bg);
@@ -21,7 +21,7 @@ body{
   font-family: Gotham, Montserrat, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
 }
 
-a{ color: inherit; }
+a{ color: inherit; text-decoration: none; }
 
 .container{
   min-height: 100vh;
@@ -33,10 +33,10 @@ a{ color: inherit; }
 
 .header{
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 18px;
-  padding: 14px 16px;
+  padding: 16px 18px;
   border: 1px solid var(--stroke);
   border-radius: var(--radius);
   background: linear-gradient(180deg, rgba(0,64,136,0.22), rgba(0,0,0,0.0));
@@ -44,13 +44,13 @@ a{ color: inherit; }
 
 .brand{
   display: flex;
-  align-items: center;
-  gap: 14px;
+  align-items: flex-start;
+  gap: 16px;
 }
 
 .logo{
-  width: 62px;
-  height: 62px;
+  width: 72px;
+  height: 72px;
   border-radius: 999px;
   background: #ffffff;
   padding: 6px;
@@ -60,8 +60,29 @@ a{ color: inherit; }
 .welcome{
   font-weight: 800;
   letter-spacing: 0.2px;
-  font-size: clamp(22px, 2.6vw, 38px);
-  line-height: 1.05;
+  font-size: clamp(28px, 3.2vw, 56px);
+  line-height: 1.03;
+}
+
+.tournamentNameLine{
+  margin-top: 8px;
+  font-weight: 800;
+  color: var(--cdl-yellow);
+  font-size: clamp(16px, 1.4vw, 26px);
+  min-height: 28px;
+}
+
+.tournamentInput{
+  margin-top: 10px;
+  width: min(760px, 70vw);
+  border: 1px solid var(--stroke);
+  background: rgba(0,0,0,0.35);
+  color: var(--text);
+  padding: 12px 14px;
+  border-radius: 12px;
+  outline: none;
+  font-weight: 800;
+  font-size: 16px;
 }
 
 .nav{
@@ -73,29 +94,33 @@ a{ color: inherit; }
   border: 1px solid var(--stroke);
   background: rgba(255,255,255,0.04);
   color: var(--text);
-  padding: 10px 12px;
+  padding: 10px 14px;
   border-radius: 12px;
   cursor: pointer;
-  font-weight: 700;
+  font-weight: 800;
+  font-size: 14px;
 }
 .btn:hover{ background: rgba(255,255,255,0.08); }
+.btn:disabled{ opacity: 0.4; cursor: not-allowed; }
 
+/* One card above the other */
 .grid{
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: 1fr;
   gap: 18px;
+  max-width: 1200px;
 }
 
 .card{
   border: 1px solid var(--stroke);
   border-radius: var(--radius);
-  background: radial-gradient(1100px 400px at 30% 0%, rgba(248,184,8,0.10), rgba(0,0,0,0.0)),
+  background: radial-gradient(1100px 500px at 30% 0%, rgba(248,184,8,0.10), rgba(0,0,0,0.0)),
               rgba(255,255,255,0.04);
-  padding: 16px;
+  padding: 18px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  min-height: 280px;
+  gap: 14px;
+  min-height: 340px;
 }
 
 .courtTitle{
@@ -107,64 +132,75 @@ a{ color: inherit; }
 
 .courtTitle h2{
   margin: 0;
-  font-size: 22px;
+  font-size: clamp(22px, 2.0vw, 34px);
   letter-spacing: 0.2px;
+  font-weight: 800;
 }
 
 .tag{
   border: 1px solid rgba(248,184,8,0.35);
   background: rgba(248,184,8,0.12);
   color: #ffe9a0;
-  padding: 5px 10px;
+  padding: 6px 12px;
   border-radius: 999px;
-  font-weight: 800;
+  font-weight: 900;
   font-size: 12px;
 }
 
 .sectionLabel{
   color: var(--muted);
-  font-weight: 800;
-  letter-spacing: 0.14em;
+  font-weight: 900;
+  letter-spacing: 0.16em;
   font-size: 12px;
   text-transform: uppercase;
 }
 
 .matchBig{
-  border-left: 5px solid var(--cdl-yellow);
-  padding-left: 12px;
+  border-left: 6px solid var(--cdl-yellow);
+  padding-left: 14px;
 }
 
 .matchBig .teams{
-  font-size: clamp(26px, 2.2vw, 44px);
-  font-weight: 800;
-  line-height: 1.05;
+  font-size: clamp(34px, 3.2vw, 68px);
+  font-weight: 900;
+  line-height: 1.02;
 }
 
 .matchBig .meta{
-  margin-top: 6px;
+  margin-top: 8px;
   color: var(--muted);
-  font-weight: 700;
+  font-weight: 800;
+  font-size: clamp(16px, 1.4vw, 24px);
 }
 
 .matchSmall{
-  border-left: 5px solid rgba(0,64,136,0.8);
-  padding-left: 12px;
+  border-left: 6px solid rgba(0,64,136,0.8);
+  padding-left: 14px;
 }
 
 .matchSmall .teams{
-  font-size: clamp(18px, 1.4vw, 24px);
-  font-weight: 800;
+  font-size: clamp(22px, 2.0vw, 34px);
+  font-weight: 900;
+  line-height: 1.06;
 }
 
 .matchSmall .meta{
-  margin-top: 4px;
+  margin-top: 6px;
   color: var(--muted);
-  font-weight: 700;
+  font-weight: 800;
+  font-size: clamp(14px, 1.1vw, 20px);
 }
 
+/* Up Next greyed out */
+.upNextDim{
+  opacity: 0.60;
+  filter: saturate(0.9);
+}
+
+/* Admin */
 .adminWrap{
   display: grid;
-  grid-template-columns: 380px minmax(0,1fr);
+  grid-template-columns: 420px minmax(0,1fr);
   gap: 18px;
 }
 
@@ -183,7 +219,7 @@ a{ color: inherit; }
 }
 
 label{
-  font-weight: 800;
+  font-weight: 900;
   color: var(--muted);
   font-size: 12px;
   letter-spacing: 0.08em;
@@ -197,7 +233,7 @@ input, select{
   padding: 10px 12px;
   border-radius: 12px;
   outline: none;
-  font-weight: 700;
+  font-weight: 800;
 }
 
 .row{
@@ -220,7 +256,7 @@ input, select{
 }
 
 .queueItem strong{
-  font-weight: 800;
+  font-weight: 900;
 }
 
 .smallBtn{
@@ -230,7 +266,7 @@ input, select{
   padding: 7px 10px;
   border-radius: 10px;
   cursor: pointer;
-  font-weight: 800;
+  font-weight: 900;
   font-size: 12px;
 }
 
@@ -239,25 +275,8 @@ input, select{
   background: rgba(232,48,56,0.12);
 }
 
+/* Responsive */
 @media (max-width: 980px){
-  .grid{ grid-template-columns: 1fr; }
   .adminWrap{ grid-template-columns: 1fr; }
-}
-.tournamentInput{
-  margin-top: 8px;
-  width: min(720px, 70vw);
-  border: 1px solid var(--stroke);
-  background: rgba(0,0,0,0.35);
-  color: var(--text);
-  padding: 10px 12px;
-  border-radius: 12px;
-  font-weight: 800;
-  font-size: 16px;
-}
-
-.tournamentName{
-  margin-top: 8px;
-  color: var(--cdl-yellow);
-  font-weight: 800;
-  font-size: 18px;
+  .grid{ max-width: 100%; }
 }
