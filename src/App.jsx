@@ -12,9 +12,6 @@ const defaultState = {
     { id: "court2", name: "Court 2", nowMatchId: null, queueMatchIds: [] },
   ],
   matches: {},
-  settings: {
-    autoStartNextOnFinish: true,
-  },
 };
 
 function uid() {
@@ -30,7 +27,6 @@ function loadState() {
       ...defaultState,
       ...parsed,
       header: { ...defaultState.header, ...(parsed.header ?? {}) },
-      settings: { ...defaultState.settings, ...(parsed.settings ?? {}) },
     };
   } catch {
     return defaultState;
@@ -88,11 +84,7 @@ export default function App() {
           return { ...c, queueMatchIds: [...c.queueMatchIds, id] };
         });
 
-        return {
-          ...prev,
-          courts,
-          matches: { ...prev.matches, [id]: match },
-        };
+        return { ...prev, courts, matches: { ...prev.matches, [id]: match } };
       });
     },
 
@@ -116,9 +108,7 @@ export default function App() {
       });
     },
 
-    // Next match:
-    // - Finish current (if any)
-    // - Start next queued match (if any)
+    // Next match = finish current (if any) then start next queued (if any).
     nextMatch: (courtId) => {
       setAndSave((prev) => {
         const courtBefore = prev.courts.find((c) => c.id === courtId);
@@ -184,34 +174,11 @@ function Header({ mode, tournamentName, actions }) {
         <div>
           <div className="welcome">Welcome to CDL. Home of the Panthers!</div>
 
-          {/* Tournament name line (reserved space) */}
-          <div
-            style={{
-              marginTop: 6,
-              fontWeight: 800,
-              color: "var(--cdl-yellow)",
-              fontSize: 18,
-              minHeight: 24,
-            }}
-          >
-            {showName !== "" ? showName : " "}
-          </div>
+          <div className="tournamentNameLine">{showName !== "" ? showName : " "}</div>
 
-          {/* Editable in Admin */}
           {mode === "admin" && (
             <input
-              style={{
-                marginTop: 8,
-                width: "min(720px, 70vw)",
-                border: "1px solid var(--stroke)",
-                background: "rgba(0,0,0,0.35)",
-                color: "var(--text)",
-                padding: "10px 12px",
-                borderRadius: 12,
-                fontWeight: 800,
-                fontSize: 16,
-                fontFamily: "Gotham, Montserrat, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif",
-              }}
+              className="tournamentInput"
               value={tournamentName}
               placeholder="Tournament name (editable)"
               onChange={(e) => actions.setTournamentName(e.target.value)}
@@ -238,15 +205,15 @@ function Display({ state }) {
       {state.courts.map((court) => {
         const now = court.nowMatchId ? state.matches[court.nowMatchId] : null;
 
-        const upNext1Id = court.queueMatchIds[0];
-        const upNext2Id = court.queueMatchIds[1];
+        const up1Id = court.queueMatchIds[0];
+        const up2Id = court.queueMatchIds[1];
 
-        const upNext1 = upNext1Id ? state.matches[upNext1Id] : null;
-        const upNext2 = upNext2Id ? state.matches[upNext2Id] : null;
+        const up1 = up1Id ? state.matches[up1Id] : null;
+        const up2 = up2Id ? state.matches[up2Id] : null;
 
         const nowF = formatMatch(now);
-        const next1F = formatMatch(upNext1);
-        const next2F = formatMatch(upNext2);
+        const up1F = formatMatch(up1);
+        const up2F = formatMatch(up2);
 
         return (
           <div className="card" key={court.id}>
@@ -263,17 +230,21 @@ function Display({ state }) {
               </div>
             </div>
 
-            <div>
+            {/* Spacer before Up Next */}
+            <br />
+
+            <div className="upNextDim">
               <div className="sectionLabel">Up next</div>
+
               <div className="matchSmall">
-                <div className="teams">{next1F ? next1F.teams : "—"}</div>
-                <div className="meta">{next1F ? next1F.meta : "No match queued"}</div>
+                <div className="teams">{up1F ? up1F.teams : "—"}</div>
+                <div className="meta">{up1F ? up1F.meta : "No match queued"}</div>
               </div>
 
-              {next2F && (
-                <div className="matchSmall" style={{ marginTop: 10 }}>
-                  <div className="teams">{next2F.teams}</div>
-                  <div className="meta">{next2F.meta}</div>
+              {up2F && (
+                <div className="matchSmall" style={{ marginTop: 14 }}>
+                  <div className="teams">{up2F.teams}</div>
+                  <div className="meta">{up2F.meta}</div>
                 </div>
               )}
             </div>
@@ -352,7 +323,7 @@ function Admin({ state, actions }) {
           Add to queue
         </button>
 
-        <div style={{ height: 12 }} />
+        <div style={{ height: 14 }} />
 
         <div className="row">
           <button className="btn" onClick={() => actions.startMatch(courtId)}>
@@ -363,7 +334,7 @@ function Admin({ state, actions }) {
           </button>
         </div>
 
-        <div style={{ height: 12 }} />
+        <div style={{ height: 14 }} />
         <button className="btn" onClick={actions.resetAll}>
           Reset all
         </button>
