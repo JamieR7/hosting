@@ -243,3 +243,21 @@ input, select{
   .grid{ grid-template-columns: 1fr; }
   .adminWrap{ grid-template-columns: 1fr; }
 }
+.tournamentInput{
+  margin-top: 8px;
+  width: min(720px, 70vw);
+  border: 1px solid var(--stroke);
+  background: rgba(0,0,0,0.35);
+  color: var(--text);
+  padding: 10px 12px;
+  border-radius: 12px;
+  font-weight: 800;
+  font-size: 16px;
+}
+
+.tournamentName{
+  margin-top: 8px;
+  color: var(--cdl-yellow);
+  font-weight: 800;
+  font-size: 18px;
+}
