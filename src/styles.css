@@ -29,6 +29,7 @@ a{ color: inherit; text-decoration: none; }
   display: flex;
   flex-direction: column;
   gap: 4px;
+  margin: 0;  /* Explicitly set */
 }
 
 .header{
@@ -40,6 +41,7 @@ a{ color: inherit; text-decoration: none; }
   border: 1px solid var(--stroke);
   border-radius: var(--radius);
   background: linear-gradient(180deg, rgba(0,64,136,0.22), rgba(0,0,0,0.0));
+  margin-bottom: 0;  /* Explicitly set */
 }
 
 .brand{
@@ -72,6 +74,7 @@ a{ color: inherit; text-decoration: none; }
   font-weight: 800;
   color: var(--cdl-yellow);
   font-size: clamp(20px, 2.0vw, 36px);  /* Increased from clamp(16px, 1.4vw, 26px) */
+  line-height: 1.2;  /* Normalize line height */
   min-height: 28px;
 }
 
