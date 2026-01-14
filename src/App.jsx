@@ -309,7 +309,7 @@ function Display({ state, actions }) {
                 </div>
               </div>
 
-              <br />
+              <div style={{ height: 6 }}></div>
 
               <div className="upNextDim">
                 <div className="sectionLabel">Up next</div>
