@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import logo from "./assets/logo.png";
 
 // Optional athletics logo - won't break build if missing
 let athleticsLogo = null;
@@ -197,7 +196,6 @@ function Header({ mode, tournamentName, actions, viewCourtIndex, setViewCourtInd
   return (
     <div className="header">
       <div className="brand">
-        <img className="logo" src={logo} alt="CDL Panthers logo" />
         <div>
           <div className="welcome">Welcome to CDL. Home of the Panthers!</div>
 
