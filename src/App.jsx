@@ -189,4 +189,142 @@ function Display({ state }) {
               </div>
 
               {up2F && (
-                <div className="matchSmall" style={{ margi
+                <div className="matchSmall" style={{ marginTop: 10 }}>
+                  <div className="teams">{up2F.teams}</div>
+                  <div className="meta">{up2F.meta}</div>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function Admin({ state, actions }) {
+  const [courtId, setCourtId] = useState(state.courts[0]?.id ?? "court1");
+  const [roundLabel, setRoundLabel] = useState("Group Stage");
+  const [groupLabel, setGroupLabel] = useState("");
+  const [teamA, setTeamA] = useState("");
+  const [teamB, setTeamB] = useState("");
+
+  const canAdd = teamA.trim() && teamB.trim() && roundLabel.trim();
+
+  return (
+    <div className="adminWrap">
+      <div className="panel">
+        <div className="field">
+          <label>Court</label>
+          <select value={courtId} onChange={e => setCourtId(e.target.value)}>
+            {state.courts.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+          </select>
+        </div>
+
+        <div className="field">
+          <label>Round</label>
+          <select value={roundLabel} onChange={e => setRoundLabel(e.target.value)}>
+            <option>Group Stage</option>
+            <option>Quarter-final</option>
+            <option>Semi-final</option>
+            <option>Final</option>
+            <option>Friendly</option>
+          </select>
+        </div>
+
+        <div className="field">
+          <label>Group (optional)</label>
+          <input value={groupLabel} onChange={e => setGroupLabel(e.target.value)} placeholder="e.g., Group A" />
+        </div>
+
+        <div className="row">
+          <div className="field">
+            <label>Team A</label>
+            <input value={teamA} onChange={e => setTeamA(e.target.value)} placeholder="Panthers U14" />
+          </div>
+          <div className="field">
+            <label>Team B</label>
+            <input value={teamB} onChange={e => setTeamB(e.target.value)} placeholder="Lions U14" />
+          </div>
+        </div>
+
+        <button
+          className="btn"
+          disabled={!canAdd}
+          onClick={() => {
+            actions.addMatchToCourt({
+              courtId,
+              roundLabel,
+              groupLabel: groupLabel.trim() || null,
+              teamA: teamA.trim(),
+              teamB: teamB.trim()
+            });
+            setTeamA(""); setTeamB("");
+          }}
+        >
+          Add to queue
+        </button>
+
+        <div style={{ height: 12 }} />
+
+        <div className="row">
+          <button className="btn" onClick={() => actions.startMatch(courtId)}>Start selected court</button>
+          <button className="btn" onClick={() => actions.finishMatch(courtId)}>Finish selected court</button>
+        </div>
+
+        <div style={{ height: 12 }} />
+        <button className="btn" onClick={actions.resetAll}>Reset all</button>
+      </div>
+
+      <div className="panel">
+        <div className="sectionLabel">Queues</div>
+
+        {state.courts.map(c => {
+          const now = c.nowMatchId ? state.matches[c.nowMatchId] : null;
+
+          return (
+            <div key={c.id} style={{ marginTop: 14 }}>
+              <div className="courtTitle">
+                <h2 style={{ margin: 0 }}>{c.name}</h2>
+                <div className="row" style={{ justifyContent: "flex-end" }}>
+                  <button className="smallBtn" onClick={() => actions.startMatch(c.id)}>Start</button>
+                  <button className="smallBtn danger" onClick={() => actions.finishMatch(c.id)}>Finish</button>
+                </div>
+              </div>
+
+              <div style={{ marginTop: 10 }}>
+                <div className="queueItem">
+                  <div>
+                    <div><strong>NOW:</strong> {now ? `${now.teamA} vs ${now.teamB}` : "—"}</div>
+                    <div style={{ color: "var(--muted)", fontWeight: 700, marginTop: 2 }}>
+                      {now ? [now.roundLabel, now.groupLabel].filter(Boolean).join(" • ") : "No live match"}
+                    </div>
+                  </div>
+                </div>
+
+                {c.queueMatchIds.length === 0 ? (
+                  <div style={{ color: "var(--muted)", fontWeight: 700 }}>No queued matches.</div>
+                ) : (
+                  c.queueMatchIds.map((id, idx) => {
+                    const m = state.matches[id];
+                    return (
+                      <div className="queueItem" key={id}>
+                        <div>
+                          <div><strong>{idx === 0 ? "NEXT:" : `Q${idx}:`}</strong> {m.teamA} vs {m.teamB}</div>
+                          <div style={{ color: "var(--muted)", fontWeight: 700, marginTop: 2 }}>
+                            {[m.roundLabel, m.groupLabel].filter(Boolean).join(" • ")}
+                          </div>
+                        </div>
+                        <button className="smallBtn danger" onClick={() => actions.removeQueuedMatch(c.id, id)}>Remove</button>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
