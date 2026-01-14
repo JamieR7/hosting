@@ -64,7 +64,6 @@ function useMode() {
 export default function App() {
   const mode = useMode();
   const [state, setState] = useState(() => loadState());
-  const [viewCourtIndex, setViewCourtIndex] = useState(0);
 
   const setAndSave = (updater) => {
     setState((prev) => {
@@ -146,6 +145,30 @@ export default function App() {
       });
     },
 
+    prevMatch: (courtId) => {
+      setAndSave((prev) => {
+        const courtBefore = prev.courts.find((c) => c.id === courtId);
+        if (!courtBefore) return prev;
+
+        const currentId = courtBefore.nowMatchId;
+        if (!currentId) return prev;
+
+        const queue = [currentId, ...courtBefore.queueMatchIds];
+        const matches = { ...prev.matches };
+
+        if (matches[currentId]) {
+          matches[currentId] = { ...matches[currentId], status: "queued" };
+        }
+
+        const courts = prev.courts.map((c) => {
+          if (c.id !== courtId) return c;
+          return { ...c, nowMatchId: null, queueMatchIds: queue };
+        });
+
+        return { ...prev, courts, matches };
+      });
+    },
+
     removeQueuedMatch: (courtId, matchId) => {
       setAndSave((prev) => {
         const courts = prev.courts.map((c) => {
@@ -169,12 +192,9 @@ export default function App() {
         mode={mode}
         tournamentName={state.header?.tournamentName ?? ""}
         actions={actions}
-        viewCourtIndex={viewCourtIndex}
-        setViewCourtIndex={setViewCourtIndex}
-        totalCourts={state.courts.length}
       />
       {mode === "display" ? (
-        <Display state={state} viewCourtIndex={viewCourtIndex} />
+        <Display state={state} actions={actions} />
       ) : (
         <Admin state={state} actions={actions} />
       )}
@@ -182,16 +202,8 @@ export default function App() {
   );
 }
 
-function Header({ mode, tournamentName, actions, viewCourtIndex, setViewCourtIndex, totalCourts }) {
+function Header({ mode, tournamentName, actions }) {
   const showName = (tournamentName ?? "").trim();
-
-  const handlePrev = () => {
-    setViewCourtIndex((prev) => (prev > 0 ? prev - 1 : totalCourts - 1));
-  };
-
-  const handleNext = () => {
-    setViewCourtIndex((prev) => (prev < totalCourts - 1 ? prev + 1 : 0));
-  };
 
   return (
     <div className="header">
@@ -213,16 +225,6 @@ function Header({ mode, tournamentName, actions, viewCourtIndex, setViewCourtInd
       </div>
 
       <div className="nav">
-        {mode === "display" && (
-          <>
-            <button className="btn" onClick={handlePrev}>
-              ← Prev
-            </button>
-            <button className="btn" onClick={handleNext}>
-              Next →
-            </button>
-          </>
-        )}
         <a className="btn" href="#/display" aria-current={mode === "display" ? "page" : undefined}>
           Display
         </a>
@@ -234,57 +236,73 @@ function Header({ mode, tournamentName, actions, viewCourtIndex, setViewCourtInd
   );
 }
 
-function Display({ state, viewCourtIndex }) {
-  const court = state.courts[viewCourtIndex];
-  if (!court) return null;
-
-  const now = court.nowMatchId ? state.matches[court.nowMatchId] : null;
-
-  const up1Id = court.queueMatchIds[0];
-  const up2Id = court.queueMatchIds[1];
-
-  const up1 = up1Id ? state.matches[up1Id] : null;
-  const up2 = up2Id ? state.matches[up2Id] : null;
-
-  const nowF = formatMatch(now);
-  const up1F = formatMatch(up1);
-  const up2F = formatMatch(up2);
-
+function Display({ state, actions }) {
   return (
     <div className="displayWrap">
-      <div className="courtColumn">
-        <div className="card">
-          <div className="courtTitle">
-            <h2>{court.name}</h2>
-            <span className="tag">{now ? "LIVE" : "READY"}</span>
-          </div>
+      <div className="courtsGrid">
+        {state.courts.map((court) => {
+          const now = court.nowMatchId ? state.matches[court.nowMatchId] : null;
 
-          <div>
-            <div className="sectionLabel">Now playing</div>
-            <div className="matchBig">
-              <div className="teams">{nowF ? nowF.teams : "—"}</div>
-              <div className="meta">{nowF ? nowF.meta : "No match started"}</div>
-            </div>
-          </div>
+          const up1Id = court.queueMatchIds[0];
+          const up2Id = court.queueMatchIds[1];
 
-          <br />
+          const up1 = up1Id ? state.matches[up1Id] : null;
+          const up2 = up2Id ? state.matches[up2Id] : null;
 
-          <div className="upNextDim">
-            <div className="sectionLabel">Up next</div>
+          const nowF = formatMatch(now);
+          const up1F = formatMatch(up1);
+          const up2F = formatMatch(up2);
 
-            <div className="matchSmall">
-              <div className="teams">{up1F ? up1F.teams : "—"}</div>
-              <div className="meta">{up1F ? up1F.meta : "No match queued"}</div>
-            </div>
-
-            {up2F && (
-              <div className="matchSmall" style={{ marginTop: 14 }}>
-                <div className="teams">{up2F.teams}</div>
-                <div className="meta">{up2F.meta}</div>
+          return (
+            <div className="card" key={court.id}>
+              <div className="courtTitle">
+                <h2>{court.name}</h2>
+                <div className="courtControls">
+                  <button 
+                    className="courtBtn" 
+                    onClick={() => actions.prevMatch(court.id)}
+                    disabled={!court.nowMatchId}
+                  >
+                    ← Prev
+                  </button>
+                  <span className="tag">{now ? "LIVE" : "READY"}</span>
+                  <button 
+                    className="courtBtn" 
+                    onClick={() => actions.nextMatch(court.id)}
+                  >
+                    Next →
+                  </button>
+                </div>
               </div>
-            )}
-          </div>
-        </div>
+
+              <div>
+                <div className="sectionLabel">Now playing</div>
+                <div className="matchBig">
+                  <div className="teams">{nowF ? nowF.teams : "—"}</div>
+                  <div className="meta">{nowF ? nowF.meta : "No match started"}</div>
+                </div>
+              </div>
+
+              <br />
+
+              <div className="upNextDim">
+                <div className="sectionLabel">Up next</div>
+
+                <div className="matchSmall">
+                  <div className="teams">{up1F ? up1F.teams : "—"}</div>
+                  <div className="meta">{up1F ? up1F.meta : "No match queued"}</div>
+                </div>
+
+                {up2F && (
+                  <div className="matchSmall" style={{ marginTop: 14 }}>
+                    <div className="teams">{up2F.teams}</div>
+                    <div className="meta">{up2F.meta}</div>
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })}
       </div>
 
       {athleticsLogo && (
