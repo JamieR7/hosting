@@ -268,14 +268,11 @@ function Display({ state, actions }) {
           const now = court.nowMatchId ? state.matches[court.nowMatchId] : null;
 
           const up1Id = court.queueMatchIds[0];
-          const up2Id = court.queueMatchIds[1];
 
           const up1 = up1Id ? state.matches[up1Id] : null;
-          const up2 = up2Id ? state.matches[up2Id] : null;
 
           const nowF = formatMatch(now);
           const up1F = formatMatch(up1);
-          const up2F = formatMatch(up2);
 
           const hasHistory = (court.historyMatchIds ?? []).length > 0;
 
