@@ -268,7 +268,6 @@ function Display({ state, actions }) {
           const now = court.nowMatchId ? state.matches[court.nowMatchId] : null;
 
           const up1Id = court.queueMatchIds[0];
-
           const up1 = up1Id ? state.matches[up1Id] : null;
 
           const nowF = formatMatch(now);
@@ -315,13 +314,6 @@ function Display({ state, actions }) {
                   <div className="teams">{up1F ? up1F.teams : "—"}</div>
                   <div className="meta">{up1F ? up1F.meta : "No match queued"}</div>
                 </div>
-
-                {up2F && (
-                  <div className="matchSmall" style={{ marginTop: 14 }}>
-                    <div className="teams">{up2F.teams}</div>
-                    <div className="meta">{up2F.meta}</div>
-                  </div>
-                )}
               </div>
             </div>
           );
