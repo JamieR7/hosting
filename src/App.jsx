@@ -103,6 +103,43 @@ export default function App() {
       });
     },
 
+    // NEW: Action to update an existing match
+    updateMatch: ({ matchId, courtId, roundLabel, groupLabel, teamA, teamB }) => {
+      setAndSave((prev) => {
+        // 1. Update the match details
+        const match = prev.matches[matchId];
+        if (!match) return prev; // Match doesn't exist
+
+        const updatedMatch = { ...match, roundLabel, groupLabel, teamA, teamB };
+        const matches = { ...prev.matches, [matchId]: updatedMatch };
+
+        // 2. Handle Court Change Logic (Only if match is currently in a queue)
+        // Check which court currently holds this match in its queue
+        const currentCourt = prev.courts.find(c => c.queueMatchIds.includes(matchId));
+        let courts = prev.courts;
+
+        // If the match is in a queue AND the target court is different
+        if (currentCourt && currentCourt.id !== courtId) {
+          // Remove from old court
+          courts = courts.map(c => {
+             if (c.id === currentCourt.id) {
+               return { ...c, queueMatchIds: c.queueMatchIds.filter(id => id !== matchId) };
+             }
+             return c;
+          });
+          // Add to new court (append to end)
+          courts = courts.map(c => {
+             if (c.id === courtId) {
+               return { ...c, queueMatchIds: [...c.queueMatchIds, matchId] };
+             }
+             return c;
+          });
+        }
+
+        return { ...prev, matches, courts };
+      });
+    },
+
     startMatch: (courtId) => {
       setAndSave((prev) => {
         const court = prev.courts.find((c) => c.id === courtId);
@@ -330,17 +367,63 @@ function Display({ state, actions }) {
 }
 
 function Admin({ state, actions }) {
+  // NEW STATE: track which match we are editing
+  const [editingMatchId, setEditingMatchId] = useState(null);
+
   const [courtId, setCourtId] = useState(state.courts[0]?.id ?? "court1");
   const [roundLabel, setRoundLabel] = useState("Group Stage");
   const [groupLabel, setGroupLabel] = useState("");
   const [teamA, setTeamA] = useState("");
   const [teamB, setTeamB] = useState("");
 
-  const canAdd = teamA.trim() && teamB.trim() && roundLabel.trim();
+  const canSubmit = teamA.trim() && teamB.trim() && roundLabel.trim();
+
+  // Helper to start editing a specific match
+  const handleEditClick = (match, currentCourtId) => {
+    setEditingMatchId(match.id);
+    setCourtId(currentCourtId); // Pre-select the court match is currently on
+    setRoundLabel(match.roundLabel);
+    setGroupLabel(match.groupLabel || "");
+    setTeamA(match.teamA);
+    setTeamB(match.teamB);
+  };
+
+  // Helper to cancel editing
+  const handleCancel = () => {
+    setEditingMatchId(null);
+    setTeamA("");
+    setTeamB("");
+    setGroupLabel("");
+    setRoundLabel("Group Stage");
+  };
+
+  // Helper to save (either Add or Update)
+  const handleSave = () => {
+    const payload = {
+        courtId,
+        roundLabel,
+        groupLabel: groupLabel.trim() || null,
+        teamA: teamA.trim(),
+        teamB: teamB.trim(),
+    };
+
+    if (editingMatchId) {
+        // UPDATE MODE
+        actions.updateMatch({ ...payload, matchId: editingMatchId });
+        handleCancel(); // Exit edit mode
+    } else {
+        // ADD MODE
+        actions.addMatchToCourt(payload);
+        setTeamA("");
+        setTeamB("");
+    }
+  };
 
   return (
     <div className="adminWrap">
       <div className="panel">
+        <h3 style={{marginTop:0}}>{editingMatchId ? "Edit Match" : "Add New Match"}</h3>
+        
         <div className="field">
           <label>Court</label>
           <select value={courtId} onChange={(e) => setCourtId(e.target.value)}>
@@ -379,23 +462,23 @@ function Admin({ state, actions }) {
           </div>
         </div>
 
-        <button
-          className="btn"
-          disabled={!canAdd}
-          onClick={() => {
-            actions.addMatchToCourt({
-              courtId,
-              roundLabel,
-              groupLabel: groupLabel.trim() || null,
-              teamA: teamA.trim(),
-              teamB: teamB.trim(),
-            });
-            setTeamA("");
-            setTeamB("");
-          }}
-        >
-          Add to queue
-        </button>
+        <div className="row" style={{ gap: 10 }}>
+            {/* BUTTON CHANGES BASED ON EDIT MODE */}
+            <button
+            className="btn"
+            disabled={!canSubmit}
+            onClick={handleSave}
+            style={{flex: 1}}
+            >
+            {editingMatchId ? "Update Match" : "Add to queue"}
+            </button>
+
+            {editingMatchId && (
+                <button className="btn danger" onClick={handleCancel}>
+                    Cancel
+                </button>
+            )}
+        </div>
 
         <div style={{ height: 14 }} />
 
@@ -444,6 +527,16 @@ function Admin({ state, actions }) {
                       {now ? [now.roundLabel, now.groupLabel].filter(Boolean).join(" • ") : "No live match"}
                     </div>
                   </div>
+                  {/* EDIT BUTTON FOR LIVE MATCH */}
+                   {now && (
+                      <button 
+                        className="smallBtn" 
+                        onClick={() => handleEditClick(now, c.id)}
+                        style={{marginLeft: 10}}
+                      >
+                      Edit
+                    </button>
+                   )}
                 </div>
 
                 {c.queueMatchIds.length === 0 ? (
@@ -461,9 +554,20 @@ function Admin({ state, actions }) {
                             {[m.roundLabel, m.groupLabel].filter(Boolean).join(" • ")}
                           </div>
                         </div>
-                        <button className="smallBtn danger" onClick={() => actions.removeQueuedMatch(c.id, id)}>
-                          Remove
-                        </button>
+                        
+                        <div className="row" style={{gap: 5}}>
+                            {/* NEW EDIT BUTTON */}
+                            <button 
+                                className="smallBtn" 
+                                onClick={() => handleEditClick(m, c.id)}
+                            >
+                                Edit
+                            </button>
+                            
+                            <button className="smallBtn danger" onClick={() => actions.removeQueuedMatch(c.id, id)}>
+                                Remove
+                            </button>
+                        </div>
                       </div>
                     );
                   })
