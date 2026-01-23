@@ -29,7 +29,7 @@ a{ color: inherit; text-decoration: none; }
   display: flex;
   flex-direction: column;
   gap: 4px;
-  margin: 0;  /* Explicitly set */
+  margin: 0;
 }
 
 .header{
@@ -37,11 +37,11 @@ a{ color: inherit; text-decoration: none; }
   align-items: flex-start;
   justify-content: space-between;
   gap: 18px;
-   padding: 4px 18px 2px 18px;  /* Reduce bottom padding: top right bottom left */
+  padding: 4px 18px 2px 18px;
   border: 1px solid var(--stroke);
   border-radius: var(--radius);
   background: linear-gradient(180deg, rgba(0,64,136,0.22), rgba(0,0,0,0.0));
-  margin-bottom: 0;  /* Explicitly set */
+  margin-bottom: 0;
 }
 
 .brand{
@@ -70,11 +70,11 @@ a{ color: inherit; text-decoration: none; }
 
 .tournamentNameLine{
   margin-top: 6px;
-   margin-bottom: 0;  /* Remove any bottom margin */
+  margin-bottom: 0;
   font-weight: 800;
   color: var(--cdl-yellow);
-  font-size: clamp(20px, 2.0vw, 36px);  /* Increased from clamp(16px, 1.4vw, 26px) */
-  line-height: 1.2;  /* Normalize line height */
+  font-size: clamp(20px, 2.0vw, 36px);
+  line-height: 1.2;
   min-height: 28px;
 }
 
@@ -105,9 +105,30 @@ a{ color: inherit; text-decoration: none; }
   cursor: pointer;
   font-weight: 800;
   font-size: 14px;
+  transition: background 0.2s;
 }
 .btn:hover{ background: rgba(255,255,255,0.08); }
 .btn:disabled{ opacity: 0.4; cursor: not-allowed; }
+
+/* Edit Mode Buttons */
+.btn.primary {
+  background: rgba(248, 184, 8, 0.15);
+  border-color: rgba(248, 184, 8, 0.4);
+  color: var(--cdl-yellow);
+}
+.btn.primary:hover {
+  background: rgba(248, 184, 8, 0.25);
+}
+
+.btn.cancel {
+  background: rgba(232, 48, 56, 0.15);
+  border-color: rgba(232, 48, 56, 0.4);
+  color: var(--text);
+}
+.btn.cancel:hover {
+  background: rgba(232, 48, 56, 0.25);
+}
+
 
 /* Display: two column layout */
 .displayWrap{
@@ -120,9 +141,9 @@ a{ color: inherit; text-decoration: none; }
 .courtsGrid{
   display: flex;
   flex-direction: column;
-  gap: 12px;  /* Increased from 4px - more space between Court 1 and Court 2 cards */
+  gap: 12px;
   flex: 1;
-   margin-top: -40px;  /* Pull cards up closer to header */
+  margin-top: -40px;
 }
 
 .logoColumn{
@@ -144,10 +165,10 @@ a{ color: inherit; text-decoration: none; }
   border-radius: var(--radius);
   background: radial-gradient(1100px 500px at 30% 0%, rgba(248,184,8,0.10), rgba(0,0,0,0.0)),
               rgba(255,255,255,0.04);
-  padding: 16px;  /* Back up a bit from 14px */
+  padding: 16px;
   display: flex;
   flex-direction: column;
-  gap: 10px;  /* Slightly more internal spacing */
+  gap: 10px;
 }
 
 .courtTitle{
@@ -258,6 +279,25 @@ a{ color: inherit; text-decoration: none; }
   border-radius: var(--radius);
   background: rgba(255,255,255,0.04);
   padding: 14px;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+/* Edit Mode Styles */
+.panel.editing {
+  border-color: var(--cdl-yellow);
+  background: rgba(248, 184, 8, 0.03);
+}
+
+.editing-badge {
+  background: var(--cdl-yellow);
+  color: black;
+  font-weight: 900;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  display: inline-block;
+  margin-bottom: 12px;
+  text-transform: uppercase;
 }
 
 .field{
@@ -302,6 +342,12 @@ input, select{
   padding: 10px 12px;
   background: rgba(0,0,0,0.25);
   margin-bottom: 10px;
+  transition: all 0.2s;
+}
+
+.queueItem.editing {
+  border-color: var(--cdl-yellow);
+  background: rgba(248, 184, 8, 0.1);
 }
 
 .queueItem strong{
@@ -318,11 +364,21 @@ input, select{
   font-weight: 900;
   font-size: 12px;
 }
+.smallBtn:hover{ background: rgba(255,255,255,0.12); }
 
 .smallBtn.danger{
   border-color: rgba(232,48,56,0.5);
   background: rgba(232,48,56,0.12);
 }
+.smallBtn.danger:hover{ background: rgba(232,48,56,0.25); }
+
+/* New Edit button style */
+.smallBtn.primary{
+  border-color: rgba(248,184,8,0.5);
+  background: rgba(248,184,8,0.12);
+  color: var(--cdl-yellow);
+}
+.smallBtn.primary:hover{ background: rgba(248,184,8,0.25); }
 
 @media (max-width: 1100px){
   .displayWrap{
